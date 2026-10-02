@@ -1,0 +1,40 @@
+{
+  "name": "eventops",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack --hostname 0.0.0.0",
+    "build": "next build --webpack",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "skills:install": "npx --yes @cometchat/skills add --ide codex --family react && npx --yes skills add Leonxlnx/taste-skill --agent codex --yes",
+    "test:browser": "node scripts/browser-check.mjs"
+  },
+  "dependencies": {
+    "@cometchat/calls-sdk-javascript": "5.0.6",
+    "@cometchat/chat-sdk-javascript": "^4.1.9",
+    "@cometchat/chat-uikit-react": "7.2.3",
+    "@tailwindcss/postcss": "^4.1.0",
+    "dompurify": "^3.3.1",
+    "geist": "^1.7.2",
+    "lucide-react": "^0.468.0",
+    "next": "16.3.8",
+    "postgres": "^3.4.7",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}
