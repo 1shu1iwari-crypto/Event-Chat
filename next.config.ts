@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
+  reactStrictMode: false,
   outputFileTracingRoot: process.cwd(),
   webpack(config) { config.resolve.fallback = { ...config.resolve.fallback, fs: false, path: false }; return config; },
   poweredByHeader: false,
