@@ -34,7 +34,9 @@ export function IncidentRoom({ id }: { id: string }) {
     [selectedUids, setSelectedUids] = useState<string[]>([]),
     [callLead, setCallLead] = useState(false),
     [showTimeline, setShowTimeline] = useState(true),
-    [view, setView] = useState("overview");
+    [view, setView] = useState("overview"),
+    [proposeAction, setProposeAction] = useState(false),
+    [newActionText, setNewActionText] = useState("");
   if (!state?.viewer) return null;
   const i = state.incidents.find((i) => i.id === id);
   if (!i)
@@ -63,7 +65,7 @@ export function IncidentRoom({ id }: { id: string }) {
         : i.category === "security" || i.category === "crowding"
           ? "security"
           : "tech"),
-  )!;
+  ) || state.staff.find((s) => s.role.includes("Lead")) || state.staff[0];
   const roomBanner = (
     <Link href={`/incidents/${id}`} className="incident-chat-card">
       <span className="mono">{id}</span>
@@ -105,18 +107,18 @@ export function IncidentRoom({ id }: { id: string }) {
               <button
                 className="button"
                 disabled={
-                  busy || !member || !["DETECTED", "TRIAGED"].includes(i.status)
+                  busy || !member || !["DETECTED", "TRIAGED", "ESCALATED"].includes(i.status) || !!i.acknowledgedAt
                 }
                 onClick={() => void command("acknowledge")}
               >
-                <Check size={15} /> Acknowledge
+                <Check size={15} /> {i.acknowledgedAt ? "Acknowledged" : "Acknowledge"}
               </button>
               <button
                 className="button"
-                disabled={busy || !member}
+                disabled={busy || !member || i.status === "ESCALATED"}
                 onClick={() => void command("escalate")}
               >
-                Escalate
+                {i.status === "ESCALATED" ? "Escalated" : "Escalate"}
               </button>
               <button
                 className="button primary"
@@ -213,7 +215,7 @@ export function IncidentRoom({ id }: { id: string }) {
                 <h2>Response team</h2>
                 <span className="mono muted">{i.assignedUsers.length}</span>
               </div>
-              {i.assignedUsers.map((uid) => {
+              {[...new Set(i.assignedUsers)].map((uid) => {
                 const person = state.staff.find((s) => s.uid === uid);
                 return (
                   person && (
@@ -321,11 +323,12 @@ export function IncidentRoom({ id }: { id: string }) {
                         >
                           Approve
                         </button>
-                        {action.staffUids.length > 0 && (
+                        {!closed && lead && (
                           <button
                             className="icon-button"
                             disabled={!lead || busy}
-                            aria-label={`Modify ${action.text}`}
+                            aria-label={`Assign responders for ${action.text}`}
+                            title="Assign responders"
                             onClick={() => {
                               setModify(action);
                               setSelectedUids(action.staffUids);
@@ -365,6 +368,20 @@ export function IncidentRoom({ id }: { id: string }) {
                   Manual incident. Coordinate the next steps with your response
                   team.
                 </p>
+              )}
+              {!closed && lead && (
+                <button
+                  className="button small"
+                  style={{ marginTop: "0.75rem" }}
+                  disabled={busy}
+                  onClick={() => {
+                    setNewActionText("");
+                    setSelectedUids([]);
+                    setProposeAction(true);
+                  }}
+                >
+                  <Edit3 size={14} /> Propose action
+                </button>
               )}
               {!lead && (
                 <p className="fineprint panel-text">
@@ -501,6 +518,7 @@ export function IncidentRoom({ id }: { id: string }) {
                 required
                 minLength={3}
                 maxLength={500}
+                defaultValue={i.inferences[0] || ""}
                 placeholder="Write ‘Unconfirmed’ if the cause is still unknown"
               />
             </label>
@@ -569,6 +587,75 @@ export function IncidentRoom({ id }: { id: string }) {
           <div className="direct-call-chat">
             <ChatPanel leadUid={techLead.uid} />
           </div>
+        </Modal>
+      )}
+      {proposeAction && (
+        <Modal title="Propose an action" onClose={() => setProposeAction(false)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newActionText.trim()) return;
+              void request(`incidents/${id}/add-action`, {
+                text: newActionText.trim(),
+                staffUids: selectedUids,
+              })
+                .then(() => {
+                  setProposeAction(false);
+                  setNewActionText("");
+                  setSelectedUids([]);
+                })
+                .catch(() => {});
+            }}
+          >
+            <p className="form-note">
+              Describe the operational action. You can optionally assign available responders.
+            </p>
+            <label>
+              Action description
+              <input
+                required
+                minLength={3}
+                maxLength={300}
+                placeholder="e.g. Deploy technical check at Entrance A"
+                value={newActionText}
+                onChange={(e) => setNewActionText(e.target.value)}
+                autoFocus
+              />
+            </label>
+            <p className="form-note" style={{ marginTop: "0.5rem", marginBottom: "0.25rem" }}>
+              Assign responders (optional):
+            </p>
+            <div className="staff-picker">
+              {state.staff
+                .filter(
+                  (s) => s.availability === "AVAILABLE" || s.assignment === id,
+                )
+                .map((s) => (
+                  <label key={s.uid}>
+                    <input
+                      type="checkbox"
+                      checked={selectedUids.includes(s.uid)}
+                      onChange={(e) =>
+                        setSelectedUids((uids) =>
+                          e.target.checked
+                            ? [...uids, s.uid]
+                            : uids.filter((uid) => uid !== s.uid),
+                        )
+                      }
+                    />
+                    <span>
+                      {s.name}
+                      <small>
+                        {s.role} · {s.zone}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+            </div>
+            <button className="button primary full" disabled={busy || !newActionText.trim()}>
+              Add recommended action
+            </button>
+          </form>
         </Modal>
       )}
     </>

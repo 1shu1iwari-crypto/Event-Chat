@@ -50,3 +50,11 @@ test('medical reports only recommend escalation to responsible human leads', () 
   const result = analyzeOperationalMessage([{ id: 'medical', text: 'Medical emergency reported in Hall B.', sender: 'eventops-kabir', group: teamGroup('volunteers'), at: new Date().toISOString(), transport: 'local' }])!;
   assert.equal(result.category, 'medical'); assert.equal(result.severity, 'P1'); assert.deepEqual(result.recommendedActions, ['Notify the Medical Lead and Operations Lead immediately']);
 });
+test('modified staff assignment assigns selected available staff and updates room roster', async () => {
+  const state = freshState(); for (const signal of signals('registration')) await ingestSignal(state, signal);
+  const incident = state.incidents[0], deploy = incident.actions.find(a => a.staffUids.length)!;
+  await approveAction(state, incident, deploy.id, 'eventops-maya', 'approved', ['eventops-priya']);
+  assert.equal(state.staff.find(s => s.uid === 'eventops-priya')!.assignment, incident.id);
+  assert.equal(state.staff.find(s => s.uid === 'eventops-priya')!.availability, 'ON INCIDENT');
+  assert.ok(incident.assignedUsers.includes('eventops-priya'));
+});

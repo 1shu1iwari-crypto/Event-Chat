@@ -15,7 +15,7 @@ export default function Page() {
   const people = state.staff.filter(
     (s) =>
       (team === "all" || s.team === team) &&
-      `${s.name} ${s.role}`.toLowerCase().includes(query.toLowerCase()),
+      `${s.name} ${s.role} ${s.zone} ${s.availability}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
     <>

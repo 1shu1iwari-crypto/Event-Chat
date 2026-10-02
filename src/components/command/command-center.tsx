@@ -122,7 +122,7 @@ export function CommandCenter() {
                     </p>
                     <div className="response-card-bottom">
                       <div className="mini-avatars">
-                        {i.assignedUsers.slice(0, 3).map((uid) => {
+                        {[...new Set(i.assignedUsers)].slice(0, 3).map((uid) => {
                           const person = state.staff.find((s) => s.uid === uid);
                           return (
                             person && (

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { chromium } from "@playwright/test";
 import { fileURLToPath } from "node:url";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -49,10 +49,18 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
   assert.ok(ready, "Production server must start");
+  const systemChrome = [
+    "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+  ].find((p) => existsSync(p));
+  const executable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || systemChrome || undefined;
   browser = await chromium.launch({
-    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined,
+    executablePath: executable,
     headless: true,
-    args: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+    args: executable
       ? [
           "--no-sandbox",
           "--disable-dev-shm-usage",

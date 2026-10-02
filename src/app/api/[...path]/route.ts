@@ -97,11 +97,17 @@ export async function POST(req: Request, context: Context) {
     }
     if (path[0] === 'incidents' && path.length === 3) {
       const id = path[1], operation = path[2];
-      if (['action', 'resolve', 'retry-room', 'archive'].includes(operation)) await requireSession(true);
+      if (['action', 'add-action', 'resolve', 'retry-room', 'archive'].includes(operation)) await requireSession(true);
       await mutate(async s => {
         const i = findIncident(s, id);
         if (!i.assignedUsers.includes(actor.uid) && actor.team !== 'operations') throw new HttpError(403, 'You are not on this response team.');
         if (operation === 'retry-room') { await ensureRoom(s, i); return; }
+        if (operation === 'add-action') {
+          const d = z.object({ text: z.string().min(3).max(300), staffUids: z.array(z.enum(staff.map(s => s.uid) as [string, ...string[]])).max(8).optional() }).parse(body);
+          const newActionId = `${id}-a${i.actions.length}`;
+          i.actions.push({ id: newActionId, text: d.text, decision: 'pending', staffUids: d.staffUids || [] });
+          record(s, i, `${actor.name} proposed action: ${d.text}`, 'action'); return;
+        }
         if (operation === 'action') {
           const d = z.object({ actionId: z.string(), decision: z.enum(['approved', 'rejected']), staffUids: z.array(z.enum(staff.map(s => s.uid) as [string, ...string[]])).max(8).optional() }).parse(body);
           await approveAction(s, i, d.actionId, actor.uid, d.decision, d.staffUids); return;
@@ -109,11 +115,14 @@ export async function POST(req: Request, context: Context) {
         if (operation === 'archive') { if (i.status !== 'RESOLVED') throw new HttpError(409, 'Resolve the incident first.'); i.status = 'ARCHIVED'; record(s, i, `${actor.name} archived the incident.`); return; }
         if (['RESOLVED', 'ARCHIVED'].includes(i.status)) throw new HttpError(409, 'This incident is closed.');
         if (operation === 'acknowledge') {
-          if (!['DETECTED', 'TRIAGED'].includes(i.status)) throw new HttpError(409, 'Incident has already been acknowledged.');
+          if (!['DETECTED', 'TRIAGED', 'ESCALATED'].includes(i.status) || i.acknowledgedAt) throw new HttpError(409, 'Incident has already been acknowledged.');
           i.status = 'ACKNOWLEDGED'; i.acknowledgedAt = new Date().toISOString(); record(s, i, `${actor.name} acknowledged ${id}.`); return;
         }
         if (operation === 'triage') { if (i.status !== 'DETECTED') throw new HttpError(409, 'Incident is already triaged.'); i.status = 'TRIAGED'; record(s, i, `${actor.name} triaged ${id}.`); return; }
-        if (operation === 'escalate') { i.status = 'ESCALATED'; record(s, i, `${actor.name} escalated ${id} for lead review.`); return; }
+        if (operation === 'escalate') {
+          if (i.status === 'ESCALATED') throw new HttpError(409, 'Incident is already escalated.');
+          i.status = 'ESCALATED'; record(s, i, `${actor.name} escalated ${id} for lead review.`); return;
+        }
         if (operation === 'resolve') {
           const d = z.object({ summary: z.string().min(3).max(1500), rootCause: z.string().min(3).max(500), notes: z.string().max(1500).default('') }).parse(body);
           i.status = 'RESOLVED'; i.resolvedAt = new Date().toISOString(); i.report = generateAfterActionReport(i, d.summary, d.rootCause, d.notes);
