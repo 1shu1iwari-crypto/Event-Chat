@@ -31,3 +31,11 @@ Automatic approval review rejected remote demo provisioning. Live CometChat seed
 PostgreSQL persistence is implemented but was not exercised against a configured database. Optional model enrichment was not exercised with a model credential. No public deployment or challenge video has been produced.
 
 The shared access-code staff selector and in-memory rate limiting are prototype choices, not production staff authentication. Multi-instance deployment requires a database and shared secret.
+
+## Smartphone redesign checks
+
+The interface was rebuilt with a light palette, phone bottom navigation, task-specific incident views, bottom sheets, larger controls, and home-screen metadata. The incident engine, REST contract, permissions, and persistence were retained.
+
+`npm run build` and all six domain tests passed after the redesign. The browser check now starts at 390×844 with touch/mobile emulation and covers the complete registration workflow, each incident view, assignment approval, resolution/report, manual reporting, team navigation, disconnected chat, menu dismissal, manifest and icon delivery, and role/origin guards. It checks every application screen (home, incident list/detail, team, simulation, metrics, and chat) at 320, 360, 390, 430, 768, 1024, and 1440 pixels. No document overflow or browser page errors occurred. Screenshots were inspected directly.
+
+Home-screen installation metadata was checked over HTTP; installation on physical iOS/Android devices was not tested. Live CometChat remains pending as documented above.

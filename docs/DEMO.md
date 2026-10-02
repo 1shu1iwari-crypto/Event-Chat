@@ -35,3 +35,7 @@ For an instant rehearsal, choose **Instant**. The 1× primary scenario emits rep
 Reset event is available only to the Operations Lead and is disabled during an active scenario. It clears application records, not remote communication history. Failed incident-room setup is explicit and retryable. A message-send failure pauses the run with its actual error.
 
 If CometChat is absent, the lab says **Local engine exercise**. Chat/calls stay unavailable. That state can demonstrate domain behavior, but must not be presented as a working CometChat hackathon submission.
+
+## Phone navigation
+
+Use the bottom bar for Home, Chat, Incidents, and Team. More opens Simulation lab, metrics, and account controls. Inside an incident, use Overview for evidence and the timeline, Actions for approvals, and Response chat for the real conversation. Resolution returns to Overview with the after-action report.
