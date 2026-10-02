@@ -1,15 +1,184 @@
-'use client';
-import Link from 'next/link';
-import { useState } from 'react';
-import { Play, RotateCcw, ArrowRight, ScanLine, Wifi, Mic2, Utensils, Monitor, Users } from 'lucide-react';
-import { useApp } from '@/components/app-provider';
-import { Badge, clock, Modal } from '@/components/ui';
-import { scenarios } from '@/lib/simulation/scenarios';
-import type { Scenario } from '@/types/domain';
-const icons = { registration: ScanLine, wifi: Wifi, speaker: Mic2, food: Utensils, projector: Monitor, crowding: Users };
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import {
+  Play,
+  RotateCcw,
+  ArrowRight,
+  ScanLine,
+  Wifi,
+  Mic2,
+  Utensils,
+  Monitor,
+  Users,
+} from "lucide-react";
+import { useApp } from "@/components/app-provider";
+import { Badge, clock, Modal } from "@/components/ui";
+import { scenarios } from "@/lib/simulation/scenarios";
+import type { Scenario } from "@/types/domain";
+const icons = {
+  registration: ScanLine,
+  wifi: Wifi,
+  speaker: Mic2,
+  food: Utensils,
+  projector: Monitor,
+  crowding: Users,
+};
 export default function Page() {
-  const { state, request, busy } = useApp(); const [speed, setSpeed] = useState(1), [reset, setReset] = useState(false);
+  const { state, request, busy } = useApp();
+  const [speed, setSpeed] = useState(1),
+    [reset, setReset] = useState(false);
   if (!state) return null;
-  const lead = state.viewer?.team === 'operations', running = state.simulations.some(r => r.status === 'running');
-  return <><div className="page-heading"><div><div className="eyebrow">REHEARSE THE RESPONSE</div><h1>Simulation lab</h1><p>Repeatable scenarios. Real conversations. A clear demo every time.</p></div><button className="button danger" disabled={!lead || busy || running} onClick={() => setReset(true)}><RotateCcw size={15} /> Reset event</button></div><div className="simulation-banner"><div><Badge tone={state.configured ? 'green' : 'amber'}>{state.configured ? 'REAL COMETCHAT TRANSPORT' : 'LOCAL ENGINE EXERCISE'}</Badge><p>{state.configured ? 'Scenario messages are sent as seeded staff through the CometChat REST API. Rooms and replies are real.' : 'CometChat is disconnected. You can exercise the incident engine locally; chat and calls remain unavailable.'}</p></div><label className="inline-select"><span>Scenario speed</span><select value={speed} onChange={e => setSpeed(Number(e.target.value))}><option value={1}>1× · 8 seconds</option><option value={2}>2× · 4 seconds</option><option value={0}>Instant</option></select></label></div><div className="scenario-grid">{(Object.entries(scenarios) as [Scenario, typeof scenarios[Scenario]][]).map(([key, s]) => { const Icon = icons[key]; return <article key={key} className={`panel scenario-card ${key === 'registration' ? 'flagship' : ''}`}><div className="scenario-card-top"><Icon size={23} />{key === 'registration' && <Badge tone="green">PRIMARY DEMO</Badge>}</div><h2>{s.title}</h2><p>{s.description}</p><div className="scenario-message-count">{s.messages.length} reports · {key === 'registration' ? 'Registration + Tech + Volunteers' : 'Cross-team correlation'}</div><button className="button full" disabled={busy || running || !lead} onClick={() => void request('simulation/run', { scenario: key, speed }).catch(() => {})}><Play size={14} /> Run scenario</button></article>; })}</div>{!lead && <p className="footnote">Sign in as Maya Rao, Operations Lead, to run scenarios and reset the event.</p>}<section className="panel run-log"><div className="panel-heading"><h2>Scenario history</h2><Link href="/command">Open command center <ArrowRight size={14} /></Link></div>{state.simulations.length ? state.simulations.slice().reverse().map(r => <div className="run-row" key={r.id}><span className="mono muted">{clock(r.startedAt)}</span><strong>{scenarios[r.scenario].title}</strong><span>{r.step}/{scenarios[r.scenario].messages.length} reports sent</span><Badge tone={r.status === 'error' ? 'red' : r.status === 'complete' ? 'green' : 'amber'}>{r.status}</Badge>{r.error && <p className="text-red">{r.error}</p>}</div>) : <p className="panel-text muted">No scenarios run yet. Start with registration failure.</p>}</section>{reset && <Modal title="Reset the event?" onClose={() => setReset(false)}><p className="form-note">This clears EventOps incidents, assignments, and metrics. Existing CometChat messages and rooms are retained. New runs create new response rooms.</p><button className="button danger full" disabled={busy} onClick={() => void request('simulation/reset').then(() => setReset(false)).catch(() => {})}>Reset event data</button></Modal>}</>;
+  const lead = state.viewer?.team === "operations",
+    running = state.simulations.some((r) => r.status === "running");
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">REHEARSE THE RESPONSE</div>
+          <h1>Simulation lab</h1>
+          <p>Practice the next move before you need it.</p>
+        </div>
+        <button
+          className="button danger"
+          disabled={!lead || busy || running}
+          onClick={() => setReset(true)}
+        >
+          <RotateCcw size={15} /> Reset event
+        </button>
+      </div>
+      <div className="simulation-banner">
+        <div>
+          <Badge tone={state.configured ? "green" : "amber"}>
+            {state.configured
+              ? "REAL COMETCHAT TRANSPORT"
+              : "LOCAL ENGINE EXERCISE"}
+          </Badge>
+          <p>
+            {state.configured
+              ? "Scenario messages are sent as seeded staff through the CometChat REST API. Rooms and replies are real."
+              : "CometChat is disconnected. You can exercise the incident engine locally; chat and calls remain unavailable."}
+          </p>
+        </div>
+        <label className="inline-select">
+          <span>Scenario speed</span>
+          <select
+            value={speed}
+            onChange={(e) => setSpeed(Number(e.target.value))}
+          >
+            <option value={1}>1× · 8 seconds</option>
+            <option value={2}>2× · 4 seconds</option>
+            <option value={0}>Instant</option>
+          </select>
+        </label>
+      </div>
+      <div className="scenario-grid">
+        {(
+          Object.entries(scenarios) as [
+            Scenario,
+            (typeof scenarios)[Scenario],
+          ][]
+        ).map(([key, s]) => {
+          const Icon = icons[key];
+          return (
+            <article
+              key={key}
+              className={`panel scenario-card ${key === "registration" ? "flagship" : ""}`}
+            >
+              <div className="scenario-card-top">
+                <Icon size={23} />
+                {key === "registration" && (
+                  <Badge tone="green">Start here</Badge>
+                )}
+              </div>
+              <h2>{s.title}</h2>
+              <p>{s.description}</p>
+              <div className="scenario-message-count">
+                {s.messages.length} reports ·{" "}
+                {key === "registration"
+                  ? "Registration + Tech + Volunteers"
+                  : "Cross-team correlation"}
+              </div>
+              <button
+                className="button full"
+                disabled={busy || running || !lead}
+                onClick={() =>
+                  void request("simulation/run", {
+                    scenario: key,
+                    speed,
+                  }).catch(() => {})
+                }
+              >
+                <Play size={14} /> Run scenario
+              </button>
+            </article>
+          );
+        })}
+      </div>
+      {!lead && (
+        <p className="footnote">
+          Sign in as Maya Rao, Operations Lead, to run scenarios and reset the
+          event.
+        </p>
+      )}
+      <section className="panel run-log">
+        <div className="panel-heading">
+          <h2>Scenario history</h2>
+          <Link href="/command">
+            Open command center <ArrowRight size={14} />
+          </Link>
+        </div>
+        {state.simulations.length ? (
+          state.simulations
+            .slice()
+            .reverse()
+            .map((r) => (
+              <div className="run-row" key={r.id}>
+                <span className="mono muted">{clock(r.startedAt)}</span>
+                <strong>{scenarios[r.scenario].title}</strong>
+                <span>
+                  {r.step}/{scenarios[r.scenario].messages.length} reports sent
+                </span>
+                <Badge
+                  tone={
+                    r.status === "error"
+                      ? "red"
+                      : r.status === "complete"
+                        ? "green"
+                        : "amber"
+                  }
+                >
+                  {r.status}
+                </Badge>
+                {r.error && <p className="text-red">{r.error}</p>}
+              </div>
+            ))
+        ) : (
+          <p className="panel-text muted">
+            No scenarios run yet. Start with registration failure.
+          </p>
+        )}
+      </section>
+      {reset && (
+        <Modal title="Reset the event?" onClose={() => setReset(false)}>
+          <p className="form-note">
+            This clears EventOps incidents, assignments, and metrics. Existing
+            CometChat messages and rooms are retained. New runs create new
+            response rooms.
+          </p>
+          <button
+            className="button danger full"
+            disabled={busy}
+            onClick={() =>
+              void request("simulation/reset")
+                .then(() => setReset(false))
+                .catch(() => {})
+            }
+          >
+            Reset event data
+          </button>
+        </Modal>
+      )}
+    </>
+  );
 }

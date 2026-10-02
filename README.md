@@ -85,6 +85,12 @@ Restart the dev server after changing environment variables, then sign in. A sec
 
 Group calling posts a meeting message that members join; it does not ring every member. One-to-one escalation uses the Tech/Medical/Security Lead conversation and the kit's real call controls. Incoming calls are mounted once at the stable application root. Call-log availability is not assumed, and no fake call screen is implemented.
 
+## Smartphone interface
+
+EventOps is designed around a phone: Home, Chat, Incidents, Team, and More stay within reach in the bottom navigation. The incident screen separates Overview, Actions, and Response chat. Forms open as bottom sheets, with readable fields and large controls. Desktop uses a wider layout and top navigation.
+
+The web manifest, app icons, Apple home-screen metadata, and safe-area padding support adding the website to a phone home screen. On iPhone use Safari → Share → Add to Home Screen; on Android use the browser's install/add-to-home-screen menu when available. This is a web app, not an App Store binary. It requires a network connection; there is no offline cache or push delivery.
+
 ## Demo
 
 See [the 90-second walkthrough](docs/DEMO.md). Start with Maya → Simulation lab → Registration failure → Command center → INC-023 → acknowledge → approve volunteers → collaborate/call → resolve.
@@ -148,3 +154,9 @@ Screenshots in `docs/screenshots/` are from an explicitly labelled local engine 
 ![Command center — local engine exercise](docs/screenshots/command-center.png)
 
 ![Human-confirmed closure report — local engine exercise](docs/screenshots/resolution-report.png)
+
+### Phone screens
+
+![Smartphone home — local engine exercise](docs/screenshots/mobile-command.png)
+
+![Smartphone action approval — local engine exercise](docs/screenshots/mobile-actions.png)

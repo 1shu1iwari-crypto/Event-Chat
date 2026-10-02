@@ -57,3 +57,7 @@ Dashboard CLI login completed and an existing India-region app was selected. A r
 Automatic approval review **rejected** the remote seed script because creating users/groups was judged broader than the explicit authorization. No workaround or remote retry was performed. A subsequent read-only check found **zero `eventops-` demo users**. Live seed, room creation, message send/receive, presence, and calls remain pending explicit approval and live validation.
 
 See `VERIFICATION.md` for application checks performed independently of those remote actions.
+
+## Smartphone redesign
+
+The taste pack's `redesign-existing-projects` guidance was applied to improve layout, type, navigation, touch controls, and empty states. CometChat customization/core guidance and the current official theming Markdown were read. `CometChatProvider` now uses `theme="light"`, with confirmed theme tokens scoped to `.cometchat[data-theme="light"]`. The response chat retains its bounded dimensions and existing threads, search, calls, and token login. No remote provisioning or live messages were attempted for this visual change.
