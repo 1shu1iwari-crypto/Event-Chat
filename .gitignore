@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.env*
+!.env.example
+.data/
+.cometchat/config.json
+.codex/config.toml
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Regenerate the CometChat pack with npm run skills:install.
+.cometchat/skills/
